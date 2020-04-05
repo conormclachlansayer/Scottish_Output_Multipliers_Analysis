@@ -32,18 +32,18 @@ library(directlabels)
 #Graph 1 in Presentation
 ################################################ How output multipliers varied across Scottish Industry Multipliers (with Order as x axis and Output.2016 as size)
 # Graphing Multiplier Sizes (with Order as x axis and Industry Output (2016) as size)
-x.axis <- c(1, 11, 21, 31, 41, 51, 61, 71, 81, 91, 98)
+x.axis <- c(98,91,81,71,61,51,41,31,21,11,1) 
 ggplot(multipliers_2016, aes(x=Order, y=Output2Mult, size= Output, col = IndustryType))+   
   geom_point(alpha=0.3)+
   #ggtitle("Scottish Industry Multipliers")+
-  labs(x="<------------------------ Highest Multipliers, Lowest Multipliers ------------------------>",y="Size of Output Multiplier", 
+  labs(x="<------------------------ Lowest Multipliers, Highest Multipliers ------------------------>",y="Size of Output Multiplier", 
        #subtitle="Percentage impact on y axis, nominal impact on economy represented by size of bubble",
        size = "Total Industry Output in 2016", col = "Industry Classification")+
   guides(size = guide_legend(order=1),
          col = guide_legend(order=2))+
-  scale_x_continuous(limits=c(1,98), breaks=(x.axis)) + 
+  scale_x_reverse(limits=c(98,1), breaks=(x.axis))+
   scale_y_continuous(limits=c(1,2), breaks=seq(1,2,0.1))+
-  scale_size_continuous(labels=dollar_format(prefix="?", suffix="m"), range = c(1, 10))+
+  scale_size_continuous(labels=dollar_format(prefix="£", suffix="m"), range = c(1, 10))+
   #scale_color_gradient2(midpoint=mean(Multipliers_2016$Output.2016), low="#6f2cdb", mid="#009af9", high="#00b594", space ="Lab") +
   #scale_color_continuous("#6f2cdb")+
   geom_text_repel(aes(label = IndustryName.Every4), force=1, size=3, arrow = arrow(length = unit(0.00001, "npc")), box.padding = 1) +
@@ -62,21 +62,21 @@ ggplot(multipliers_2016, aes(x=Order, y=Output2Mult, size= Output, col = Industr
 #Graph 2 in Presentation
 #################################################################################### Relationship between Output multipliers & Indirect effects
 # Graphing Multiplier Sizes (with Order as x axis and Industry Output (2016) as size)
-x.axis <- c(1, 11, 21, 31, 41, 51, 61, 71, 81, 91, 98)
+x.axis <- c(98,91,81,71,61,51,41,31,21,11,1) 
 ggplot(multipliers_2016, aes(x=Order, y=IndirectEffect, size=Output, col=IndustryType))+   
   geom_point(alpha=0.3)+
   #ggtitle("Scottish Industry Multipliers")+
-  labs(x="<------------------------ Highest Multipliers, Lowest Multipliers ------------------------>",y="Size of Indirect Effect", 
+  labs(x="<------------------------ Lowest Multipliers, Highest Multipliers ------------------------>",y="Size of Indirect Effect", 
        #subtitle="Percentage impact on y axis, nominal impact on economy represented by size of bubble",
        size = "Total Industry Output in 2016", col = "Industry Classification")+
   guides(size = guide_legend(order=1),
          fill = guide_legend(order=2))+
-  scale_x_continuous(limits=c(1,98), breaks=(x.axis)) + 
+  scale_x_reverse(limits=c(98,1), breaks=(x.axis))+
   scale_y_continuous(limits=c(0,1), breaks=seq(0,1,0.1))+
-  scale_size_continuous(labels=dollar_format(prefix="?", suffix="m"), range = c(1, 10))+
+  scale_size_continuous(labels=dollar_format(prefix="£", suffix="m"), range = c(1, 10))+
   #scale_color_gradient2(midpoint=mean(Multipliers_2016$Output.2016), low="#6f2cdb", mid="#009af9", high="#00b594", space ="Lab") +
   #scale_color_continuous("#6f2cdb")+
-  geom_text_repel(aes(label = IndustryName.Significant.Indirect), force=25, size=3, arrow = arrow(length = unit(0.00001, "npc")), box.padding = 1) +
+  geom_text_repel(aes(label = IndustryName.Significant.Indirect), force=2, size=3, arrow = arrow(length = unit(0.00001, "npc")), box.padding = 1) +
   theme(legend.position = "bottom", legend.direction = "horizontal",
         legend.box = "horizontal",
         legend.key.size = unit(0.5, "cm"), 
@@ -140,18 +140,18 @@ ggplot(multipliers_2016, aes(x=Domestic_Proportion, y=IndirectEffect, size=Outpu
 #Graph 4 in Presentation
 #################################################################################### Relationship between Output Multipliers and Induced effects
 # Graphing Multiplier Sizes (with Order as x axis and Output.2016 as size)
-x.axis <- c(1, 11, 21, 31, 41, 51, 61, 71, 81, 91, 98)
+x.axis <- c(98,91,81,71,61,51,41,31,21,11,1) 
 ggplot(multipliers_2016, aes(x=Order, y=InducedEffect, size=Output, col= IndustryType))+   
   geom_point(alpha=0.3)+
   #ggtitle("Scottish Industry Multipliers")+
-  labs(x="<------------------------ Highest Multipliers, Lowest Multipliers ------------------------>",y="Size of Induced Effect", 
+  labs(x="<------------------------ Lowest Multipliers, Highest Multipliers ------------------------>",y="Size of Induced Effect", 
        #subtitle="Percentage impact on y axis, nominal impact on economy represented by size of bubble",
        size = "Total Industry Output in 2016", col = "Industry Classification")+
   guides(size = guide_legend(order=1),
          fill = guide_legend(order=2))+
-  scale_x_continuous(limits=c(1,98), breaks=(x.axis)) + 
+  scale_x_reverse(limits=c(98,1), breaks=(x.axis))+
   scale_y_continuous(limits=c(0,0.6), breaks=seq(0,0.6,0.1))+
-  scale_size_continuous(labels=dollar_format(prefix="?", suffix="m"), range = c(1, 10))+
+  scale_size_continuous(labels=dollar_format(prefix="£", suffix="m"), range = c(1, 10))+
   #scale_color_gradient2(midpoint=mean(Multipliers_2016$Output.2016), low="#6f2cdb", mid="#009af9", high="#00b594", space ="Lab") +
   #scale_color_continuous("#6f2cdb")+
   geom_text_repel(aes(label = IndustryName.Significant.Induced), force=17, size=3, arrow = arrow(length = unit(0.00001, "npc")), box.padding = 1) +
@@ -214,7 +214,7 @@ ggplot(data = multipliers_select10, aes(x=Year, y=Output2Mult))+
         axis.line = element_line(size=1, colour = "black"),
         plot.title = element_text(size = 20, face = "bold")) +
   theme_classic()+
-  geom_dl(aes(label=Industry, color=Industry), method = list("last.points"))
+  geom_dl(aes(label=Industry, color=Industry), method = list(dl.trans(x = x + .1), "last.bumpup"))
 
 
 #Graph 7 in Presentation
@@ -224,7 +224,7 @@ ggplot(data = multipliers_select10, aes(x=Year, y=Domestic_Proportion))+
   geom_line(data = multipliers_notselect10, size=0.4, alpha=0.1, show.legend = FALSE, aes(x=Year, y=Domestic_Proportion, group = Industry))+
   geom_line(data = multipliers_select10, size=1.2, alpha=1, show.legend = FALSE, aes(x=Year, y=Domestic_Proportion, colour=Industry, group = Industry))+
   #ggtitle("The relationship between Multipliers & Domestic Usage")+
-  labs(x="Year",y="Output Multiplier (Direct + Indirect + Induced Effect)") + 
+  labs(x="Year",y="Proportion of Inputs sourced Domestically") + 
   #subtitle="Percentage impact on y axis, nominal impact on economy represented by size of bubble",
   #fill = "Type of Industry", size = "Output in 2016")+
   scale_x_continuous(limits=c(1998,2021), breaks=seq(1998,2016,2)) + 
@@ -238,20 +238,32 @@ ggplot(data = multipliers_select10, aes(x=Year, y=Domestic_Proportion))+
         axis.line = element_line(size=1, colour = "black"),
         plot.title = element_text(size = 20, face = "bold")) +
   theme_classic()+
-  geom_dl(aes(label=Industry, color=Industry), method = list("last.points"))
+  geom_dl(aes(label=Industry, color=Industry), method = list(dl.trans(x = x + .1), "last.bumpup"))
 
 #Graph 8 in Presentation
 ########################################################################### All Industry Employee Compensation Usage over time [Select 9 industries] 
+temp_multipliers_notselect10 <- multipliers_notselect10 %>% select(Year, Industry, EmployeeIntensity) %>% spread(key= Year, EmployeeIntensity)
+row = 1
+while(row < nrow(temp_multipliers_notselect10)){
+  print(min(temp_multipliers_notselect10[row, -1]) < 0.15 | max(temp_multipliers_notselect10[row, -1]) > 1.15)
+  if(min(temp_multipliers_notselect10[row, -1]) < 0.15 | max(temp_multipliers_notselect10[row, -1]) > 1.15){
+    temp_multipliers_notselect10 <- temp_multipliers_notselect10[-row,]
+  }
+  
+  row = row + 1
+}
+temp_multipliers_notselect10 <- temp_multipliers_notselect10 %>% slice(seq(1, nrow(temp_multipliers_notselect10), 2)) %>% gather(key = Year, value = "EmployeeIntensity", -Industry)
+temp_multipliers_notselect10$Year <- as.numeric(temp_multipliers_notselect10$Year)
 
 ggplot(data = multipliers_select10, aes(x=Year, y=EmployeeIntensity))+   
-  geom_line(data = multipliers_notselect10, size=0.4, alpha=0.1, show.legend = FALSE, aes(x=Year, y=EmployeeIntensity, group = Industry))+
+  geom_line(data = temp_multipliers_notselect10, size=0.4, alpha=0.1, show.legend = FALSE, aes(x=Year, y=EmployeeIntensity, group = Industry))+
   geom_line(data = multipliers_select10, size=1.2, alpha=1, show.legend = FALSE, aes(x=Year, y=EmployeeIntensity, colour=Industry, group = Industry))+
   #ggtitle("The relationship between Multipliers & Domestic Usage")+
-  labs(x="Year",y="Output Multiplier (Direct + Indirect + Induced Effect)") + 
+  labs(x="Year",y="Proportion of GVA attributed to Employee Compensation") + 
   #subtitle="Percentage impact on y axis, nominal impact on economy represented by size of bubble",
   #fill = "Type of Industry", size = "Output in 2016")+
   scale_x_continuous(limits=c(1998,2021), breaks=seq(1998,2016,2)) + 
-  scale_y_continuous(limits=c(0.15,1.15), breaks=seq(0.15,1.15,0.2))+
+  scale_y_continuous(limits=c(0.14,1.15), breaks=seq(0.15,1.15,0.2))+
   #scale_colour_distiller(palette="RdBu") +
   #scale_color_manual(values=wes_palette("Cavalcanti1"))+
   scale_color_jco()+
@@ -261,8 +273,9 @@ ggplot(data = multipliers_select10, aes(x=Year, y=EmployeeIntensity))+
         axis.line = element_line(size=1, colour = "black"),
         plot.title = element_text(size = 20, face = "bold")) +
   theme_classic()+
-  geom_dl(aes(label=Industry, color=Industry), method = list("last.points"))
+  geom_dl(aes(label=Industry, color=Industry), method = list(dl.trans(x = x + .1), "last.bumpup"))
 
+remove(temp_multipliers_notselect10)
 
 ##############################################################################################################################################################
 ##############################################################################################################################################################
