@@ -43,7 +43,7 @@ ggplot(multipliers_2016, aes(x=Order, y=Output2Mult, size= Output, col = Industr
          col = guide_legend(order=2))+
   scale_x_reverse(limits=c(98,1), breaks=(x.axis))+
   scale_y_continuous(limits=c(1,2), breaks=seq(1,2,0.1))+
-  scale_size_continuous(labels=dollar_format(prefix="Â£", suffix="m"), range = c(1, 10))+
+  scale_size_continuous(labels=dollar_format(prefix="£", suffix="m"), range = c(1, 10))+
   #scale_color_gradient2(midpoint=mean(Multipliers_2016$Output.2016), low="#6f2cdb", mid="#009af9", high="#00b594", space ="Lab") +
   #scale_color_continuous("#6f2cdb")+
   geom_text_repel(aes(label = IndustryName.Every4), force=1, size=3, arrow = arrow(length = unit(0.00001, "npc")), box.padding = 1) +
