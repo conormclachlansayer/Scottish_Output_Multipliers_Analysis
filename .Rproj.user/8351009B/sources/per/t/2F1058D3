@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1583168161427.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3679570280",
+    "id" : "2F1058D3",
+    "lastKnownWriteTime" : 1583171227,
+    "last_content_update" : 1583171227243,
+    "path" : "C:/Visualising in R/FiscalMultipliers/Visualisations.R",
+    "project_path" : "Visualisations.R",
+    "properties" : {
+        "cursorPosition" : "254,43",
+        "scrollLine" : "220"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

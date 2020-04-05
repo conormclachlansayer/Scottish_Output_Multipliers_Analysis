@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1582565743864.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2695921298",
+    "id" : "B6FBB330",
+    "lastKnownWriteTime" : 1583150164,
+    "last_content_update" : 1583150164723,
+    "path" : "C:/TEMP/Fiscal Multipliers - Local Drive/Visualising in R/FiscalMultipliers/Fiscal Multipliers.R",
+    "project_path" : "Fiscal Multipliers.R",
+    "properties" : {
+        "cursorPosition" : "177,12",
+        "scrollLine" : "136"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

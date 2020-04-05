@@ -1,0 +1,327 @@
+library(tidyverse)
+library(readxl)
+library(writexl)
+library(ggrepel)
+library(RColorBrewer)
+library(wesanderson)
+library(ggsci)
+library(BBmisc)
+library(scales)
+library(data.table)
+
+##############################################################################################################################################################
+##############################################################################################################################################################
+########################################################### IMPORTING AND CLEANING DATA - TIME SERIES ########################################################
+##############################################################################################################################################################
+##############################################################################################################################################################
+
+multipliers_type1 <- read_xlsx("inputdata/FullMultiplierTablesType1.xlsx", sheet=2, col_names = FALSE)
+
+multipliers_type1 <- multipliers_type1[-c(1:6),]
+
+cols <- multipliers_type1[1,]
+cols[1,3] <- "Industry"
+
+colnames(multipliers_type1) <- cols
+multipliers_type1 <- multipliers_type1[-1,]
+
+multipliers_type2 <- read_xlsx("inputdata/FullMultiplierTablesType2.xlsx", sheet=2, col_names = FALSE)
+
+multipliers_type2 <- multipliers_type2[-c(1:6),]
+
+cols <- multipliers_type2[1,]
+cols[1,3] <- "Industry"
+
+colnames(multipliers_type2) <- cols
+multipliers_type2 <- multipliers_type2[-1,]
+
+#####Creating dataframe of multipliers 
+
+multipliers_type1_short <- as.data.frame(multipliers_type1[,c(1,3,4)])
+multipliers_all <- cbind(multipliers_type1_short,multipliers_type2[,4])
+
+#Fixing column names
+colnames(multipliers_all) <- c("Year","Industry","Output1Mult","Output2Mult")
+multipliers_all$Output1Mult <- as.numeric(multipliers_all$Output1Mult)
+multipliers_all$Output2Mult <- as.numeric(multipliers_all$Output2Mult)
+multipliers_all$Industry <- as.factor(multipliers_all$Industry)
+multipliers_all$Year <- as.numeric(multipliers_all$Year)
+
+#Converting to Dataframe
+multipliers_all <- as.data.frame(multipliers_all)
+
+multipliers_all$DirectEffect <- 1
+multipliers_all$IndirectEffect <- (multipliers_all$Output1Mult - multipliers_all$DirectEffect)
+multipliers_all$InducedEffect <- (multipliers_all$Output2Mult - multipliers_all$Output1Mult)
+multipliers_all$IndirectInducedEffect <- multipliers_all$IndirectEffect + multipliers_all$InducedEffect
+
+#Testing for negatives or NAs=
+table(is.na(multipliers_all))
+table(multipliers_all$DirectEffect < 0)
+table(multipliers_all$IndirectEffect < 0)
+table(multipliers_all$InducedEffect < 0)
+table(multipliers_all$IndirectInducedEffect < 0)
+
+industry_type <- read_xlsx("inputdata/IndustryType.xlsx", sheet=1, col_names = TRUE)
+
+# Joining industry type onto all multipliers
+
+multipliers_all <- full_join(multipliers_all, industry_type, by = c("Industry" = "Industry"))
+
+remove(cols)
+remove(multipliers_type1)
+remove(multipliers_type1_short)
+remove(multipliers_type2)
+remove(industry_type)
+
+############################################################################# Finding Import Intensity and Compensation of Employees Over Time
+
+all_io_tables <- read_xlsx("inputdata/alltablesIO.xlsx", sheet=4, col_names = FALSE)
+all_io_tables <- all_io_tables[-c(1:6),]
+all_io_tables_colnames <- all_io_tables[1,]
+all_io_tables_colnames[1,3] <- "Industry"
+colnames(all_io_tables) <- all_io_tables_colnames
+remove(all_io_tables_colnames)
+all_io_tables <- all_io_tables[-1,]
+
+# Import Intensity
+all_import_intensity <- filter(all_io_tables[,1:101], Industry == "Total domestic use" | Industry == "Imports from rest of world" | Industry == "Imports from rest of UK" )
+all_import_intensity_long <- gather(all_import_intensity, key = Industry, value = "Value", -c("Year":"Industry"))
+all_import_intensity_long$Value <- as.numeric(all_import_intensity_long$Value)
+all_import_intensity_long$Year <- as.numeric(all_import_intensity_long$Year)
+all_import_intensity_long <- spread(all_import_intensity_long, key = SIC, Value)
+all_import_intensity_long$Domestic_Proportion <- (all_import_intensity_long$TDU)/(all_import_intensity_long$RoWImp + all_import_intensity_long$RUKImp + all_import_intensity_long$TDU)
+remove(all_import_intensity)
+
+
+# Merging onto Multipliers_all dataset
+multipliers_all <- inner_join(multipliers_all, all_import_intensity_long, by = c("Industry" = "Industry", "Year" = "Year"))
+
+# Testing if same as multipliers_2016 data
+#table(signif(sort(filter(multipliers_all, Year == "2016")[,"Domestic_Proportion"]), digits = 8) == signif(sort(filter(multipliers_2016, Year == "2016")[,"Domestic_Proportion"]), digits = 8))
+remove(all_import_intensity_long)
+
+# Compensation of Employees
+all_employee_compensation <- filter(all_io_tables[,1:101], SIC == "CoE" | SIC == "GOS" | SIC == "GVA" | SIC == "TlSPrdn")
+all_employee_compensation_long <- gather(all_employee_compensation, key = Industry, value = "Value", -c("Year":"Industry"))
+all_employee_compensation_long$Value <- as.numeric(all_employee_compensation_long$Value)
+all_employee_compensation_long$Year <- as.numeric(all_employee_compensation_long$Year)
+all_employee_compensation_long <- spread(all_employee_compensation_long, key = SIC, Value)
+all_employee_compensation_long$EmployeeIntensity <- (all_employee_compensation_long$CoE)/(all_employee_compensation_long$GVA)
+
+# Merging onto Multipliers_all dataset
+multipliers_all <- inner_join(multipliers_all, all_employee_compensation_long, by = c("Industry" = "Industry", "Year" = "Year"))
+
+# Testing if same as multipliers_2016 data
+#table(sort(filter(multipliers_all, Year == "2016")[,"EmployeeIntensity"]) == sort(filter(multipliers_2016, Year == "2016")[,"EmployeeIntensity"]))
+remove(all_employee_compensation_long)
+remove(all_employee_compensation)
+
+# Checking that GVA is equal to GOS + CoE + Taxes less subsidies on production
+table(signif(multipliers_all$GVA,digits = 7) == signif((multipliers_all$GOS + multipliers_all$CoE + multipliers_all$TlSPrdn), digits = 7))
+
+
+# Adding total output for each year and industry
+all_industryoutput <- filter(all_io_tables[,1:101], SIC == "TOut")
+all_industryoutput <- gather(all_industryoutput[,-2], key = Industry, value = "Output", -c("Year","Industry"))
+all_industryoutput$Output <- as.numeric(all_industryoutput$Output)
+all_industryoutput$Year <- as.numeric(all_industryoutput$Year)
+
+# Merging onto Multipliers_all dataset
+multipliers_all <- inner_join(multipliers_all, all_industryoutput, by = c("Industry" = "Industry", "Year" = "Year"))
+
+# Checking that Industry output in 2016 matches that in original dataset
+#table(signif(sort(filter(multipliers_all, Year == "2016")[,"Output"]), digits = 8) == signif(sort(filter(multipliers_2016, Year == "2016")[,"IndustryOutput"]), digits = 8))
+remove(all_industryoutput)
+remove(all_io_tables)
+
+# Writing to Excel 
+write_xlsx(multipliers_all, "outputdata/Multipliers_all.xlsx")
+
+##############################################################################################################################################################
+##############################################################################################################################################################
+########################################################### IMPORTING AND CLEANING DATA - 2016 DATA ##########################################################
+##############################################################################################################################################################
+##############################################################################################################################################################
+
+multipliers_2016 <- multipliers_all %>% filter(Year == "2016") 
+multipliers_2016 <- arrange(multipliers_2016, desc(Output2Mult))
+multipliers_2016$Order <- c(1:98)
+
+
+IO.2016 <- read_excel("inputdata/IO2016.xlsx", sheet=4, col_names=FALSE)
+IO.2016 <- IO.2016[-c(1:6), -1]
+
+# Vector of Total Domestic
+domestic_supply <- IO.2016[c(2:99),c(2,101)]
+colnames(domestic_supply) <- c("Industry","Intermediate_Use")
+domestic_supply$Internal_Use <- as.numeric(NA)
+
+row <- 2
+col <- 3
+for(i in 1:98){
+  domestic_supply[i,3] <- IO.2016[row, col]
+  row <- row + 1
+  col <- col + 1
+}
+remove(row)
+remove(col)
+domestic_supply$Intermediate_Use <- as.numeric(domestic_supply$Intermediate_Use)
+domestic_supply$Internal_Use <- as.numeric(domestic_supply$Internal_Use)
+domestic_supply$Prop_Internal_Use <- domestic_supply$Internal_Use/domestic_supply$Intermediate_Use
+
+remove(IO.2016)
+
+# Adding Output in 2016 to Dataframe
+multipliers_2016 <- full_join(multipliers_2016, domestic_supply, by = c("Industry" = "Industry"))
+
+remove(domestic_supply)
+
+# Checking redundant rows
+filter(multipliers_2016, is.na(Year))
+
+# Removing redundant rows
+multipliers_2016 <- filter(multipliers_2016, !is.na(Year))
+
+# Checking redundant rows
+filter(multipliers_2016, is.na(Year))
+
+write_xlsx(multipliers_2016, "outputdata/Multipliers2016.xlsx")
+
+
+##############################################################################################################################################################
+##############################################################################################################################################################
+################################################################### FILTERING - TIME SERIES ##################################################################
+##############################################################################################################################################################
+##############################################################################################################################################################
+############################################################### Output 2 Multipliers Over Time ###############################################################
+
+# Subsetting for only output multipliers 2 to compare over time
+#multipliers_overtime_comparison <- multipliers_all[,c(1,2,4)]
+
+##############################################################################################################################################################
+################################################## Finding industries with significant change in output 2 multipliers ########################################
+
+# ### Creating wide version of type 2 multipliers
+# multipliers_overtime_comparison <- spread(multipliers_overtime_comparison, Year, Output2Mult)
+# 
+# ### Finding Largest Difference between two year
+# multipliers_overtime_comparison$Diff <- apply(multipliers_overtime_comparison[,-1], 1, function(x) diff(range(x)))
+# 
+# 
+# ### Finding change between earliest and latest year
+# multipliers_overtime_comparison <- multipliers_overtime_comparison %>% mutate(WideDifference = `2016` - `1998`) 
+# 
+# multipliers_overtime_comparison$Diff <- abs(multipliers_overtime_comparison$Diff)
+# multipliers_overtime_comparison$WideDifference <- abs(multipliers_overtime_comparison$WideDifference)
+# 
+# ### Summary Statistics
+# str(multipliers_overtime_comparison)
+# boxplot(multipliers_overtime_comparison$WideDifference)
+# summary(multipliers_overtime_comparison$WideDifference)
+# remove(multipliers_overtime_comparison)
+
+##############################################################################################################################################################
+############################################### Creating Subset of Data -Select Data - for time series #######################################################
+
+#perc90 <- multipliers_only_type2_wide$WideDifference>quantile(multipliers_only_type2_wide$WideDifference,0.90)
+#multipliers_type2_largest_90 <- multipliers_only_type2_wide[perc90,]
+#multipliers_type2_notlargest_90 <- multipliers_only_type2_wide[!perc90,]
+
+select10 <- c("Advertising & market research", "Travel & related services", "Coal & lignite", "Financial services", "Electricity", 
+              "Information services", "Coke, petroleum & petrochemicals", "Forestry harvesting", "Fish & fruit processing")
+`%notin%` <- Negate(`%in%`)
+multipliers_select10 <- multipliers_all %>% filter(Industry %in% select10)
+multipliers_notselect10 <- multipliers_all %>% filter(Industry %notin% select10) 
+
+
+##############################################################################################################################################################
+##############################################################################################################################################################
+############################################################### FILTERING - STATIC DATA ######################################################################
+##############################################################################################################################################################
+##############################################################################################################################################################
+
+# Only including Labels for Industries with Indirect+Induced effect above 3rd quantile
+
+# perc75 <- Multipliers_2016.Ordered$Multiplier> quantile(Multipliers_2016.Ordered$Multiplier, 0.75)
+# IndustryName.Multiplier <- as.character(c(1:97))
+# 
+# for(i in 1:97){
+#   ind <- ""
+#   if(perc75[[i]] == FALSE){
+#     ind = ""
+#   } else {ind= Multipliers_2016.Ordered$Industry[[i]]}
+#   IndustryName.Multiplier[[i]] <- ind
+# }
+
+
+#Only including Multipliers for largest 25% industries and smallest 25% industries
+
+# Multipler.Size.Index <- Multipliers_2016.Ordered$Output.2016 > quantile(Multipliers_2016.Ordered$Output.2016, 0.80) | Multipliers_2016.Ordered$Output.2016 < quantile(Multipliers_2016.Ordered$Output.2016, 0.20)
+# IndustryName.TopBot25 <- as.character(c(1:97))
+# 
+# for(i in 1:97){
+#   ind <- ""
+#   if(Multipler.Size.Index[[i]] == FALSE){
+#     ind = ""
+#   } else {ind= Multipliers_2016.Ordered$Industry[[i]]}
+#   IndustryName.TopBot25[[i]] <- ind
+# }
+
+#Only including extra 4th multiplier
+
+IndustryName.Every4 <- as.character(c(1:98))
+
+for(i in 1:98){
+  ind <- ""
+  if(i %% 4 == 0 | i == 1 | i == 98 | i == 94){
+    ind= multipliers_2016$Industry[[i]]
+  }
+  IndustryName.Every4[[i]] <- ind
+}
+
+# Industries with large indirect effects
+IndustryName.Significant.Indirect <- as.character(c(1:98))
+boxplot(multipliers_2016$IndirectEffect)
+table(multipliers_2016$IndirectEffect > quantile(multipliers_2016$IndirectEffect,0.90))
+
+for(i in 1:98){
+  ind <- ""
+  if(multipliers_2016$IndirectEffect[i] > quantile(multipliers_2016$IndirectEffect,0.90) | multipliers_2016$IndirectEffect[i] < quantile(multipliers_2016$IndirectEffect,0.10)){
+    ind= multipliers_2016$Industry[[i]]
+  }
+  IndustryName.Significant.Indirect[[i]] <- ind
+}
+table(IndustryName.Significant.Indirect == "")
+
+# Industries with large Induced effects
+IndustryName.Significant.Induced <- as.character(c(1:98))
+boxplot(multipliers_2016$InducedEffect)
+table(multipliers_2016$InducedEffect > quantile(multipliers_2016$InducedEffect,0.90))
+
+for(i in 1:98){
+  ind <- ""
+  if(multipliers_2016$InducedEffect[i] > quantile(multipliers_2016$InducedEffect,0.90) | multipliers_2016$InducedEffect[i] < quantile(multipliers_2016$InducedEffect,0.10)){
+    ind= multipliers_2016$Industry[[i]]
+  }
+  IndustryName.Significant.Induced[[i]] <- ind
+}
+table(IndustryName.Significant.Induced == "")
+
+
+##############################################################################################################################################################
+##############################################################################################################################################################
+############################################## IMPORTING AND CLEANING DATA - Graphing Key Determinants of Fiscal Multipliers #################################
+##############################################################################################################################################################
+##############################################################################################################################################################
+
+multiplier.determinants <- read_excel("inputdata/MultiplierDeterminants.xlsx",col_names=TRUE)
+
+multiplier.determinants.businesscycle <- multiplier.determinants %>% filter(Determinant == "Business_Cycle")
+multiplier.determinants.monetarycycle <- multiplier.determinants %>% filter(Determinant == "Monetary_Cycle")
+
+multiplier.determinants.businesscycle$Time <- as.factor(multiplier.determinants.businesscycle$Time)
+multiplier.determinants.monetarycycle$Time <- as.factor(multiplier.determinants.monetarycycle$Time)
+multiplier.determinants.businesscycle$Multiplier_Type <- as.factor(multiplier.determinants.businesscycle$Multiplier_Type)
+multiplier.determinants.monetarycycle$Multiplier_Type <- as.factor(multiplier.determinants.monetarycycle$Multiplier_Type)
+remove(multiplier.determinants)

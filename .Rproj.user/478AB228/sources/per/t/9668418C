@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1583146745570.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "9668418C",
+    "lastKnownWriteTime" : 1583146715,
+    "last_content_update" : 1583146745570,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "924C7D84",
+        "caption" : "multipliers_2016",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=multipliers_2016&cache_key=924C7D84",
+        "displayedObservations" : "98",
+        "environment" : "",
+        "object" : "multipliers_2016",
+        "preview" : "0",
+        "totalObservations" : "98",
+        "variables" : "31"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

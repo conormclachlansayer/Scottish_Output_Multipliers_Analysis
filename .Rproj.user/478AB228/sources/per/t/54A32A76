@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1583146674414.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "54A32A76",
+    "lastKnownWriteTime" : 3180141808686473843,
+    "last_content_update" : 1583146674414,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "92D18B07",
+        "caption" : "all_employee_compensation_long",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=all_employee_compensation_long&cache_key=92D18B07",
+        "displayedObservations" : 1862,
+        "environment" : "",
+        "object" : "all_employee_compensation_long",
+        "preview" : 0,
+        "totalObservations" : 1862,
+        "variables" : 6
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}
